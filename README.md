@@ -3,8 +3,6 @@
 [![npm](https://img.shields.io/npm/dt/vue-jroll-scroller-plugin.svg?style=flat-square)](https://www.npmjs.com/package/vue-jroll-scroller-plugin)
 [![license](https://img.shields.io/github/license/shmy/vue-jroll-scroller-plugin.svg?style=flat-square)](https://github.com/shmy/vue-jroll-scroller-plugin/blob/master/LICENSE.md)
 [![GitHub stars](https://img.shields.io/github/stars/shmy/vue-jroll-scroller-plugin.svg?style=social&label=Star)](https://github.com/shmy/vue-jroll-scroller-plugin)  
-![enter description here][1]  
-![enter description here][2]  
 
 ### **Installation**  
 
@@ -21,7 +19,7 @@ $ npm install vue-jroll-scroller-plugin --save
 ```
 
 ### simple example  
-see test/index.html
+**See `./test/index.html`**
 
 
 
