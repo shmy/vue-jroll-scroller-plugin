@@ -23,10 +23,12 @@
 
 
 
+
     #app {
       display: flex;
       flex-direction: column;
     }
+
 
 
 
@@ -38,10 +40,12 @@
 
 
 
+
     .flex-full {
       height: 1px;
       flex: 1;
     }
+
 
 
 
@@ -64,24 +68,46 @@
 <body>
   <div id="app">
     <header class="header"></header>
-    <jroll-scroller ref="scroller" :scroll-bar-fade="false" @scroll="onScroll" class="flex-full">
-      <p v-for="n of 100" @click="toast(n)">{{ n }}</p>
+    <jroll-scroller ref="scroller" @loadmore="loadmore" @pulldown="pulldown" class="flex-full" :config="{ pulldown: true, loadmore: true }">
+      <p v-for="n of items" @click="toast(n)">{{ n }}</p>
     </jroll-scroller>
     <footer class="footer">
-      <a href="#" @click="top">to top</a>
     </footer>
   </div>
   <script>
     Vue.use(vueJrollScrollerPlugin);
     new Vue({
       el: "#app",
+      data: {
+        items: [],
+        maxPage: 5,
+        current: 1
+      },
       methods: {
         toast: n => console.log(n),
-        onScroll (e) {
-          console.log(e);
+        pulldown(cb) {
+          setTimeout(() => {
+            if (Date.now() % 2 !== 0) {
+              return cb(new Error());
+            }
+            this.items = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            this.current = 1;
+            cb();
+          }, 2000);
         },
-        top () {
-          this.$refs.scroller.scrollTo(0, 0, 300);
+        loadmore(cb) {
+          if (this.current >= this.maxPage) return cb.completed();
+          setTimeout(() => {
+            let i = 10;
+            const arr = [];
+            while (i--) arr.push("item:" + (10 - i));
+            if (Date.now() % 2 !== 0) {
+              return cb.error();
+            }
+            this.items.push.apply(this.items, arr);
+            this.current ++;
+            cb.next();
+          }, 2000);
         }
       }
     })

@@ -1,6 +1,6 @@
 {
   "name": "vue-jroll-scroller-plugin",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "dist/vue-jroll-scroller-plugin.common.js",
   "description": "vue-router plugin",
   "repository": {
@@ -19,9 +19,18 @@
   "scripts": {
     "build": "npm run cjs && npm run umd",
     "cjs": "rollup -c --cjs",
-    "umd": "rollup -c --umd"
+    "umd": "rollup -c --umd",
+    "fix": "eslint src --fix"
   },
   "devDependencies": {
+    "babel-eslint": "^7.1.1",
+    "eslint": "^3.14.1",
+    "eslint-config-standard": "^6.2.1",
+    "eslint-friendly-formatter": "^2.0.7",
+    "eslint-loader": "^1.6.1",
+    "eslint-plugin-html": "^2.0.0",
+    "eslint-plugin-promise": "^3.4.0",
+    "eslint-plugin-standard": "^2.0.1",
     "mkdirp": "^0.5.1",
     "node-static": "^0.7.9",
     "rollup": "^0.41.4",

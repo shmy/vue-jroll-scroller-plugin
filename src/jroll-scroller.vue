@@ -2,46 +2,96 @@
   <div ref="container">
     <div>
       <slot></slot>
+      <div class="jroll-infinite-tip" ref="tip" style="height: 44px; line-height: 44px; text-align: center;">
+        {{ tip }}
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+  import JRoll from "./jroll-pulldown";
   const toKebabCase = src => src.replace(/([A-Z]){1}|([0-9]){1}/g, $0 => "-" + $0.toLowerCase());
   const events = ["scrollStart", "scroll", "scrollEnd", "touchEnd", "zoomStart", "zoom", "zoomEnd", "refresh"];
+  const defaultOpts = {
+    scrollBarY: true,
+    scrollBarFade: true
+  };
   export default {
     name: "jroll-scroller",
     props: {
       // 配置参数 参考: http://www.chjtx.com/JRoll/#options
       config: {
         type: Object,
-        default() {
-          return {
-            scrollBarY: true,
-            scrollBarFade: true
-          }
+        default () {
+          return {};
         }
+      },
+      pulldown: {
+        type: Function
       }
     },
-    data() {
+    data () {
       return {
-        jroll: null
-      }
+        jroll: null,
+        loadmoreOpts: {
+          loading: "正在加载中...",
+          error: "加载失败,上拉重试",
+          completed: "全部加载完成"
+        },
+        tip: "正在加载中...",
+        loading: false
+      };
     },
-    mounted() {
-      this.jroll = new this.$jroll(this.$refs.container, this.config);
+    mounted () {
       const self = this;
+      const opts = Object.assign(defaultOpts, this.config);
+      this.jroll = new JRoll(this.$refs.container, opts);
+      // 下拉刷新
+      opts.pulldown && this.jroll.pulldown({
+        refresh: (error) => {
+          this.$emit("pulldown", error);
+        }
+      });
+      // 上拉加载更多
+      opts.loadmore && this.jroll.on("scrollEnd", function () {
+        self.tip = self.loadmoreOpts.loading;
+        if (this.y <= this.maxScrollY + self.$refs.tip.offsetHeight && !self.loading) {
+          self.loading = true;
+          self.emitLoadMore();
+        }
+      });
       // 绑定事件
       events.forEach(function (e) {
         return self.jroll.on(e, function () {
           return self.$emit(toKebabCase(e), this);
-        })
+        });
       });
+      // 主动触发一次
+      this.emitLoadMore();
     },
-    beforeDestroy() {
+    beforeDestroy () {
       this.jroll.destroy();
     },
+    beforeUpdate () {
+      this.refresh();
+    },
     methods: {
+      emitLoadMore () {
+        this.$emit("loadmore", {
+          next: () => {
+            this.loading = false;
+          },
+          error: () => {
+            this.tip = this.loadmoreOpts.error;
+            this.loading = false;
+          },
+          completed: () => {
+            this.tip = this.loadmoreOpts.completed;
+            this.loading = false;
+          }
+        });
+      },
       // 当scroller或wrapper的高度发生变化时，需要用此方法对JRoll对象进行刷新
       refresh () {
         this.$nextTick(() => this.jroll.refresh());
