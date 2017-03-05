@@ -2,7 +2,7 @@
   <div ref="container">
     <div>
       <slot></slot>
-      <div class="jroll-infinite-tip" ref="tip" style="height: 44px; line-height: 44px; text-align: center;">
+      <div v-if="config.loadmore" class="jroll-infinite-tip" ref="tip" style="height: 44px; line-height: 44px; text-align: center;">
         {{ tip }}
       </div>
     </div>
@@ -68,7 +68,7 @@
         });
       });
       // 主动触发一次
-      this.emitLoadMore();
+      opts.loadmore && this.emitLoadMore();
     },
     beforeDestroy () {
       this.jroll.destroy();

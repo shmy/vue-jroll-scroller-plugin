@@ -164,7 +164,7 @@ var toKebabCase = function (src) { return src.replace(/([A-Z]){1}|([0-9]){1}/g, 
     scrollBarFade: true
   };
   var jrollScroller = {
-render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{ref:"container"},[_c('div',[_vm._t("default"),_vm._v(" "),_c('div',{ref:"tip",staticClass:"jroll-infinite-tip",staticStyle:{"height":"44px","line-height":"44px","text-align":"center"}},[_vm._v("\n      "+_vm._s(_vm.tip)+"\n    ")])],2)])},
+render: function(){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{ref:"container"},[_c('div',[_vm._t("default"),_vm._v(" "),(_vm.config.loadmore)?_c('div',{ref:"tip",staticClass:"jroll-infinite-tip",staticStyle:{"height":"44px","line-height":"44px","text-align":"center"}},[_vm._v("\n      "+_vm._s(_vm.tip)+"\n    ")]):_vm._e()],2)])},
 staticRenderFns: [],
     name: "jroll-scroller",
     props: {
@@ -218,7 +218,7 @@ staticRenderFns: [],
         });
       });
       // 主动触发一次
-      this.emitLoadMore();
+      opts.loadmore && this.emitLoadMore();
     },
     beforeDestroy: function beforeDestroy () {
       this.jroll.destroy();
