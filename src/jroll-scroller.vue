@@ -11,8 +11,8 @@
 
 <script>
   import JRoll from "./jroll-pulldown";
-  const toKebabCase = src => src.replace(/([A-Z]){1}|([0-9]){1}/g, $0 => "-" + $0.toLowerCase());
-  const events = ["scrollStart", "scroll", "scrollEnd", "touchEnd", "zoomStart", "zoom", "zoomEnd", "refresh"];
+  // const toKebabCase = src => src.replace(/([A-Z]){1}|([0-9]){1}/g, $0 => "-" + $0.toLowerCase());
+  // const events = ["scrollStart", "scroll", "scrollEnd", "touchEnd", "zoomStart", "zoom", "zoomEnd", "refresh"];
   const defaultOpts = {
     scrollBarY: true,
     scrollBarFade: true
@@ -35,40 +35,36 @@
       return {
         jroll: null,
         loadmoreOpts: {
-          loading: "正在加载中...",
-          error: "加载失败,上拉重试",
+          loading: "正在加载中",
+          failed: "加载失败 上拉重试",
           completed: "全部加载完成"
         },
-        tip: "正在加载中...",
+        tip: "",
         loading: false
       };
     },
     mounted () {
       const self = this;
-      const opts = Object.assign(defaultOpts, this.config);
+      const opts = Object.assign({}, defaultOpts, this.config);
       this.jroll = new JRoll(this.$refs.container, opts);
       // 下拉刷新
       opts.pulldown && this.jroll.pulldown({
-        refresh: (error) => {
-          this.$emit("pulldown", error);
+        refresh: args => {
+          this.$emit("pulldown", args);
         }
       });
       // 上拉加载更多
       opts.loadmore && this.jroll.on("scrollEnd", function () {
-        self.tip = self.loadmoreOpts.loading;
-        if (this.y <= this.maxScrollY + self.$refs.tip.offsetHeight && !self.loading) {
-          self.loading = true;
-          self.emitLoadMore();
+        if (Math.abs(this.maxScrollY) >= self.$refs.container.clientHeight && this.y <= this.maxScrollY + self.$refs.tip.offsetHeight * 2 && !self.loading) {
+          self.triggerLoadMore();
         }
       });
       // 绑定事件
-      events.forEach(function (e) {
-        return self.jroll.on(e, function () {
-          return self.$emit(toKebabCase(e), this);
-        });
-      });
-      // 主动触发一次
-      opts.loadmore && this.emitLoadMore();
+      // events.forEach(function (e) {
+      //   return self.jroll.on(e, function () {
+      //     return self.$emit(toKebabCase(e), this);
+      //   });
+      // });
     },
     beforeDestroy () {
       this.jroll.destroy();
@@ -77,17 +73,19 @@
       this.refresh();
     },
     methods: {
-      emitLoadMore () {
+      triggerPullDown () {
+        this.jroll.trigger();
+      },
+      triggerLoadMore () {
+        this.tip = this.loadmoreOpts.loading;
+        this.loading = true;
         this.$emit("loadmore", {
-          next: () => {
+          failed: () => {
+            this.tip = this.loadmoreOpts.failed;
             this.loading = false;
           },
-          error: () => {
-            this.tip = this.loadmoreOpts.error;
-            this.loading = false;
-          },
-          completed: () => {
-            this.tip = this.loadmoreOpts.completed;
+          completed: flag => {
+            flag && (this.tip = this.loadmoreOpts.completed);
             this.loading = false;
           }
         });
@@ -116,3 +114,8 @@
   };
 
 </script>
+<style>
+  .body
+    display: flex
+
+</style>

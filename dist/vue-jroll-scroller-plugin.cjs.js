@@ -114,7 +114,18 @@ JRoll.prototype.pulldown = function (params) {
       }
       setTimeout(function () {
         if (typeof options.refresh === "function") {
-          options.refresh(reset);
+          options.refresh({
+            failed: function () {
+              iconSpan.innerHTML = options.iconError;
+              textSpan.innerHTML = options.textError;
+              reset();
+            },
+            completed: function () {
+              iconSpan.innerHTML = options.iconFinish;
+              textSpan.innerHTML = options.textFinish;
+              reset();
+            }
+          });
         } else {
           console.warn("没有设置触发函数。");
           reset();
@@ -122,15 +133,12 @@ JRoll.prototype.pulldown = function (params) {
       }, 200);
     }
   }
-  function reset (error) {
-    // 完成刷新 或失败
+  function reset () {
+    // 停止旋转
     rotating = false;
-    iconSpan.innerHTML = error ? options.iconError : options.iconFinish;
-    textSpan.innerHTML = error ? options.textError : options.textFinish;
     // 收起刷新栏
     setTimeout(function () {
       moveTo(boxDiv, 0, 0, 200);
-
       me.scrollTo(0, 0, 200, true, function () {
         loading = false;
         iconSpan.innerHTML = options.iconArrow;
@@ -149,14 +157,27 @@ JRoll.prototype.pulldown = function (params) {
       iconSpan.style[TSF] = "rotateZ(0deg)";
     }
   }
+  // 主动触发
+  me.trigger = function () {
+    me.y = 0;
+    me.options.momentum = false;
 
+    // 刷新
+    iconSpan.style[TSF] = "rotateZ(0deg)";
+    iconSpan.innerHTML = options.iconLoading;
+    textSpan.innerHTML = options.textLoading;
+    setTimeout(function () {
+      me.scrollTo(0, 44, 200, true, doRefresh).minScrollY = 44;
+      moveTo(boxDiv, 0, 44, 200);
+
+      me.options.momentum = true;
+    }, 10);
+  };
   return me;
 };
 
-JRoll.prototype.pulldown.version = "1.0.0";
-
-var toKebabCase = function (src) { return src.replace(/([A-Z]){1}|([0-9]){1}/g, function ($0) { return "-" + $0.toLowerCase(); }); };
-  var events = ["scrollStart", "scroll", "scrollEnd", "touchEnd", "zoomStart", "zoom", "zoomEnd", "refresh"];
+// const toKebabCase = src => src.replace(/([A-Z]){1}|([0-9]){1}/g, $0 => "-" + $0.toLowerCase());
+  // const events = ["scrollStart", "scroll", "scrollEnd", "touchEnd", "zoomStart", "zoom", "zoomEnd", "refresh"];
   var defaultOpts = {
     scrollBarY: true,
     scrollBarFade: true
@@ -181,11 +202,11 @@ staticRenderFns: [],
       return {
         jroll: null,
         loadmoreOpts: {
-          loading: "正在加载中...",
-          error: "加载失败,上拉重试",
+          loading: "正在加载中",
+          failed: "加载失败 上拉重试",
           completed: "全部加载完成"
         },
-        tip: "正在加载中...",
+        tip: "",
         loading: false
       };
     },
@@ -193,30 +214,26 @@ staticRenderFns: [],
       var this$1 = this;
 
       var self = this;
-      var opts = Object.assign(defaultOpts, this.config);
+      var opts = Object.assign({}, defaultOpts, this.config);
       this.jroll = new JRoll(this.$refs.container, opts);
       // 下拉刷新
       opts.pulldown && this.jroll.pulldown({
-        refresh: function (error) {
-          this$1.$emit("pulldown", error);
+        refresh: function (args) {
+          this$1.$emit("pulldown", args);
         }
       });
       // 上拉加载更多
       opts.loadmore && this.jroll.on("scrollEnd", function () {
-        self.tip = self.loadmoreOpts.loading;
-        if (this.y <= this.maxScrollY + self.$refs.tip.offsetHeight && !self.loading) {
-          self.loading = true;
-          self.emitLoadMore();
+        if (Math.abs(this.maxScrollY) >= self.$refs.container.clientHeight && this.y <= this.maxScrollY + self.$refs.tip.offsetHeight * 2 && !self.loading) {
+          self.triggerLoadMore();
         }
       });
       // 绑定事件
-      events.forEach(function (e) {
-        return self.jroll.on(e, function () {
-          return self.$emit(toKebabCase(e), this);
-        });
-      });
-      // 主动触发一次
-      opts.loadmore && this.emitLoadMore();
+      // events.forEach(function (e) {
+      //   return self.jroll.on(e, function () {
+      //     return self.$emit(toKebabCase(e), this);
+      //   });
+      // });
     },
     beforeDestroy: function beforeDestroy () {
       this.jroll.destroy();
@@ -225,19 +242,21 @@ staticRenderFns: [],
       this.refresh();
     },
     methods: {
-      emitLoadMore: function emitLoadMore () {
+      triggerPullDown: function triggerPullDown () {
+        this.jroll.trigger();
+      },
+      triggerLoadMore: function triggerLoadMore () {
         var this$1 = this;
 
+        this.tip = this.loadmoreOpts.loading;
+        this.loading = true;
         this.$emit("loadmore", {
-          next: function () {
+          failed: function () {
+            this$1.tip = this$1.loadmoreOpts.failed;
             this$1.loading = false;
           },
-          error: function () {
-            this$1.tip = this$1.loadmoreOpts.error;
-            this$1.loading = false;
-          },
-          completed: function () {
-            this$1.tip = this$1.loadmoreOpts.completed;
+          completed: function (flag) {
+            flag && (this$1.tip = this$1.loadmoreOpts.completed);
             this$1.loading = false;
           }
         });
@@ -270,6 +289,10 @@ staticRenderFns: [],
     }
   };
 
+var style = document.createElement("style");
+style.type = "text/css";
+style.textContent = ".body{display:flex}";
+document.head.appendChild(style);
 var index = {
   install: function install (Vue) {
     Vue.component(jrollScroller.name, jrollScroller);
