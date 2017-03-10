@@ -1,6 +1,6 @@
 {
   "name": "vue-jroll-scroller-plugin",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "dist/vue-jroll-scroller-plugin.cjs.js",
   "description": "vue-router plugin",
   "repository": {
