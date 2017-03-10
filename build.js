@@ -7,7 +7,9 @@ const compileStylus = require("stylus");
 const cssOnly = require("rollup-plugin-css-only");
 const buble = require("rollup-plugin-buble");
 const { name } = require("./package.json");
-const { writeFileSync, readFileSync } = require("fs");
+const url = require("./url");
+
+const { unlinkSync, writeFileSync, readFileSync } = require("fs");
 const toCamelCase = src => src.replace(/-(\w)/g, ($0, $1) => $1.toUpperCase());
 const replaceContent = "__CSS_CONTENT__";
 const tmpCssPath = "dist/bundle.css";
@@ -23,7 +25,6 @@ const files = [
   .map(file => {
     return file.format === "umd" ? Object.assign(file, { globals, moduleName }) : file;
   });
-let cache;
 (async () => {
   try {
     const bundle = await rollup.rollup({
@@ -33,36 +34,46 @@ let cache;
         vue(),
         cssOnly({
           async output (styles) {
-            // transform stylus to css
+            // transform stylus to .css
             const style = compileStylus(styles);
-            const css = await style.render();
+            let css = await style.render();
+            /* eslint-disable no-useless-escape */
+            css = css.replace(/\"/g, "");
             writeFileSync(tmpCssPath, css);
+            // replace images to dataURL
+            const reps = url(css);
+            for (let rep of reps) {
+              await replace({
+                files: tmpCssPath,
+                from: rep.from,
+                to: rep.to
+              });
+            }
           }
         }),
         buble()
-      ],
-      cache: cache
+      ]
     });
-    cache = bundle;
-    // write js files
+    // write .js files
     for (let file of files) {
       await bundle.write(file);
     }
-    // minify css code
+    // minify .css code
     const { css } = await process(readFileSync(tmpCssPath, "utf-8"), { safe: true });
-    // replace to js file
+    // replace to .js file
     await replace({
       files: files.map(file => file.dest),
       from: replaceContent,
       to: css
     });
-    // minify UMD js
+    // minify UMD .js
     const result = UglifyJS.minify(`dist/${name}.umd.js`, {
       outSourceMap: minifyJsPath + ".map"
     });
-    // write minify js file
+    // write minify .js file
     writeFileSync(minifyJsPath, result.code, { encoding: "utf8" });
     writeFileSync(minifyJsPath + ".map", result.map, { encoding: "utf8" });
+    unlinkSync(tmpCssPath);
     console.log("ok!");
   } catch (error) {
     console.log(error);

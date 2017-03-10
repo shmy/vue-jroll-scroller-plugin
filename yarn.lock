@@ -1107,7 +1107,7 @@ math-expression-evaluator@^1.2.14:
   version "1.2.16"
   resolved "http://registry.npm.taobao.org/math-expression-evaluator/download/math-expression-evaluator-1.2.16.tgz#b357fa1ca9faefb8e48d10c14ef2bcb2d9f0a7c9"
 
-mime@>=1.2.9:
+mime@>=1.2.9, mime@^1.3.4:
   version "1.3.4"
   resolved "http://registry.npm.taobao.org/mime/download/mime-1.3.4.tgz#115f9e3b6b3daf2959983cb38f149a2d40eb5d53"
 
@@ -1649,6 +1649,13 @@ rollup-plugin-css-only@^0.2.0:
   dependencies:
     rollup-pluginutils "^1.5.2"
 
+rollup-plugin-url@^0.1.2:
+  version "0.1.2"
+  resolved "http://registry.npm.taobao.org/rollup-plugin-url/download/rollup-plugin-url-0.1.2.tgz#2d76c07cc82436a7bfcb6700149437d95e5118e9"
+  dependencies:
+    mime "^1.3.4"
+    rollup-pluginutils "^1.3.1"
+
 rollup-plugin-vue2@^0.8.0:
   version "0.8.0"
   resolved "http://registry.npm.taobao.org/rollup-plugin-vue2/download/rollup-plugin-vue2-0.8.0.tgz#a2ae4543c2c8939af1e183bb10529859401d209b"
@@ -1658,7 +1665,7 @@ rollup-plugin-vue2@^0.8.0:
     vue-template-compiler "^2.1.3"
     vue-template-es2015-compiler "^1.5.0"
 
-rollup-pluginutils@^1.5.0, rollup-pluginutils@^1.5.2, rollup-pluginutils@^1.5.2||2.x:
+rollup-pluginutils@^1.3.1, rollup-pluginutils@^1.5.0, rollup-pluginutils@^1.5.2, rollup-pluginutils@^1.5.2||2.x:
   version "1.5.2"
   resolved "http://registry.npm.taobao.org/rollup-pluginutils/download/rollup-pluginutils-1.5.2.tgz#1e156e778f94b7255bfa1b3d0178be8f5c552408"
   dependencies:

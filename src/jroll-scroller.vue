@@ -1,8 +1,8 @@
 <template>
   <div ref="container">
-    <div>
+    <div ref="wrapper">
       <slot></slot>
-      <div v-if="config.loadmore" class="jroll-infinite-tip" ref="tip" style="height: 44px; line-height: 44px; text-align: center;">
+      <div v-if="loadmore" class="jroll-infinite-tip" ref="tip">
         {{ tip }}
       </div>
     </div>
@@ -29,12 +29,15 @@
       },
       pulldown: {
         type: Function
+      },
+      loadmore: {
+        type: Function
       }
     },
     data () {
       return {
         jroll: null,
-        loadmoreOpts: {
+        text: {
           loading: "正在加载中",
           failed: "加载失败 上拉重试",
           completed: "全部加载完成"
@@ -45,17 +48,24 @@
     },
     mounted () {
       const self = this;
-      const opts = Object.assign({}, defaultOpts, this.config);
-      this.jroll = new JRoll(this.$refs.container, opts);
+      this.jroll = new JRoll(this.$refs.container, Object.assign({}, defaultOpts, this.config));
       // 下拉刷新
-      opts.pulldown && this.jroll.pulldown({
+      this.pulldown && this.jroll.pulldown({
         refresh: args => {
-          this.$emit("pulldown", args);
+          // this.$emit("pulldown", args);
+          this.pulldown(args);
         }
       });
       // 上拉加载更多
-      opts.loadmore && this.jroll.on("scrollEnd", function () {
-        if (Math.abs(this.maxScrollY) >= self.$refs.container.clientHeight && this.y <= this.maxScrollY + self.$refs.tip.offsetHeight * 2 && !self.loading) {
+      this.loadmore && this.jroll.on("scrollEnd", function () {
+        if (
+            this.s === "scrollY" &&
+            this.y !== 0 &&
+            this.maxScrollY !== 0 &&
+            this.y === this.maxScrollY &&
+            this.y <= this.maxScrollY + self.$refs.tip.offsetHeight * 2 &&
+            !self.loading
+          ) {
           self.triggerLoadMore();
         }
       });
@@ -69,7 +79,7 @@
     beforeDestroy () {
       this.jroll.destroy();
     },
-    beforeUpdate () {
+    updated () {
       this.refresh();
     },
     methods: {
@@ -77,18 +87,28 @@
         this.jroll.trigger();
       },
       triggerLoadMore () {
-        this.tip = this.loadmoreOpts.loading;
+        this.tip = this.text.loading;
         this.loading = true;
-        this.$emit("loadmore", {
+        this.loadmore({
           failed: () => {
-            this.tip = this.loadmoreOpts.failed;
+            this.tip = this.text.failed;
             this.loading = false;
           },
           completed: flag => {
-            flag && (this.tip = this.loadmoreOpts.completed);
+            flag && (this.tip = this.text.completed);
             this.loading = false;
           }
         });
+        // this.$emit("loadmore", {
+        //   failed: () => {
+        //     this.tip = this.text.failed;
+        //     this.loading = false;
+        //   },
+        //   completed: flag => {
+        //     flag && (this.tip = this.text.completed);
+        //     this.loading = false;
+        //   }
+        // });
       },
       // 当scroller或wrapper的高度发生变化时，需要用此方法对JRoll对象进行刷新
       refresh () {
@@ -115,7 +135,32 @@
 
 </script>
 <style>
-  .body
-    display: flex
+  .jroll-plugin-pulldown
+    position: absolute
+    top: -44px
+    left: 0
+    width: 100%
+    height: 44px
+    line-height: 44px
+    font-size: 16px
+    text-align: center
+  .jroll-plugin-pulldown-icon
+    display: inline-block
+    width:24px
+    height:24px
+    position:absolute
+    top:10px
+    left: 0
+    left:25%
+    img, svg
+      display: block
+      height: 24px
+      width: 24px
+  .jroll-plugin-pulldown-text
+    color: #000
+  .jroll-infinite-tip
+    height: 44px
+    line-height: 44px
+    text-align: center
 
 </style>

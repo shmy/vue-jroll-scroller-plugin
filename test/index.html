@@ -56,7 +56,7 @@
 <body>
   <div id="app">
     <header class="header"></header>
-    <jroll-scroller ref="scroller" @loadmore="loadmore" @pulldown="pulldown" class="flex-full" :config="{ pulldown: true, loadmore: true }">
+    <jroll-scroller ref="scroller" :loadmore="loadmore" :pulldown="pulldown" class="flex-full">
       <p v-for="n of items" @click="toast(n)">{{ n }}</p>
     </jroll-scroller>
     <footer class="footer">
@@ -78,23 +78,23 @@
             if (Date.now() % 2 !== 0) {
               return cb.failed();
             }
-            this.items = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            this.items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 3, 4, 5, 6, 7, 8, 9];
             this.current = 1;
             cb.completed();
-          }, 2000);
+          }, 1000);
         },
         loadmore(cb) {
-          if (this.current >= this.maxPage) return cb.completed();
+          if (this.current >= this.maxPage) return cb.completed(1);
           setTimeout(() => {
             let i = 10;
             const arr = [];
             while (i--) arr.push("item:" + (10 - i));
             if (Date.now() % 2 !== 0) {
-              return cb.error();
+              return cb.failed();
             }
             this.items.push.apply(this.items, arr);
             this.current ++;
-            cb.next();
+            cb.completed();
           }, 2000);
         }
       }
